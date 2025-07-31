@@ -1,9 +1,15 @@
+# this is a good bot
+# but i just added some fixes.
+# it's really helpful for me, when savefrom or ytmeta doesnt work.
+
 import os
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import yt_dlp
 import time
 from config import TOKEN, DOWNLOAD_PATH
+
+last_update_time = {}
 
 # Инициализация бота
 bot = telebot.TeleBot(TOKEN)
@@ -60,14 +66,25 @@ def progress_hook(d, message):
         try:
             total = d.get('total_bytes', 0) or d.get('total_bytes_estimate', 0)
             downloaded = d.get('downloaded_bytes', 0)
+            
             if total:
-                percentage = (downloaded / total) * 100
-                progress = progress_bar(downloaded, total)
-                bot.edit_message_text(
-                    f"⏳ Загрузка...\n{progress} {percentage:.1f}%",
-                    message.chat.id,
-                    message.message_id
-                )
+                current_time = time.time()
+                message_key = f"{message.chat.id}_{message.message_id}"
+                
+                # Обновляем сообщение не чаще чем раз в 2 секунды
+                if (message_key not in last_update_time or 
+                    current_time - last_update_time[message_key] >= 2):
+                    
+                    percentage = (downloaded / total) * 100
+                    progress = progress_bar(downloaded, total)
+                    
+                    bot.edit_message_text(
+                        f"⏳ Загрузка...\n{progress} {percentage:.1f}%",
+                        message.chat.id,
+                        message.message_id
+                    )
+                    last_update_time[message_key] = current_time
+                    
         except Exception as e:
             print(f"Error in progress hook: {e}")
 
@@ -193,6 +210,10 @@ def handle_url(message):
             
     else:
         bot.reply_to(message, "❌ Пожалуйста, отправьте корректную ссылку на YouTube видео")
+
+    message_key = f"{progress_message.chat.id}_{progress_message.message_id}"
+    if message_key in last_update_time:
+        del last_update_time[message_key]
 
 if __name__ == '__main__':
     bot.infinity_polling()

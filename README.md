@@ -51,8 +51,8 @@ sudo apt install ffmpeg
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://your-repository-url.git
-cd youtube-downloader-bot
+git clone https://github.com/iamgrim-iq/YT-DownloadBOT
+cd yt-downloadbot
 ```
 
 2. Установите зависимости:
